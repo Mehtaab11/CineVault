@@ -1,0 +1,52 @@
+.movie-row__arrows {
+  display: flex;
+  gap: 6px;
+}
+
+.movie-row__arrow {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.movie-row__arrow:hover {
+  background: var(--netflix-red);
+  border-color: var(--netflix-red);
+  transform: scale(1.08);
+}
+
+.movie-row__track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.movie-row__track::-webkit-scrollbar {
+  height: 4px;
+}
+
+.movie-row__item {
+  flex: 0 0 165px;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 768px) {
+  .movie-row__item { flex: 0 0 185px; }
+}
+
+@media (min-width: 1200px) {
+  .movie-row__item { flex: 0 0 200px; }
+}
+
+.homepage-css { display: block; }
