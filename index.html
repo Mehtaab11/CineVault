@@ -1,17 +1,432 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="CineVault — Your personal movie diary. Track watchlists, rate films, and write reviews." />
-    <title>CineVault — Personal Movie Diary</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Netflix+Sans:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CineVault — Your ultimate cinematic universe. Track watchlists, discover trending movies, watch trailers, rate films, and write personal movie diary reviews." />
+  <title>CineVault — Cinematic Universe & Personal Movie Diary</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e50914'/><polygon points='38,30 72,50 38,70' fill='white'/></svg>" />
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Sticky Navigation Bar
+       ========================================================================== -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <!-- Brand Logo -->
+      <a href="#home" class="nav-brand" data-view="home">
+        <div class="nav-brand-icon">▶</div>
+        <span class="nav-brand-text">CINEVAULT</span>
+        <span class="nav-brand-tag">PRO</span>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-links">
+        <a href="#home" class="nav-link active" data-view="home">
+          <span>🎬</span>
+          <span>Home</span>
+        </a>
+        <a href="#explore" class="nav-link" data-view="explore">
+          <span>🔍</span>
+          <span>Explore</span>
+        </a>
+        <a href="#vault" class="nav-link" data-view="vault">
+          <span>📁</span>
+          <span>My Vault</span>
+          <span class="nav-counter" id="navWatchlistCount">0</span>
+        </a>
+      </nav>
+
+      <!-- Search & Status Actions -->
+      <div class="nav-actions">
+        <div class="nav-search-wrap">
+          <span class="nav-search-icon">🔍</span>
+          <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Quick search movies..." />
+        </div>
+        <div class="api-status-pill" title="Live TMDB API or local demo state">
+          <span class="status-dot" id="apiStatusDot"></span>
+          <span id="apiStatusText">TMDB Live</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       Main Application Views
+       ========================================================================== -->
+  <main>
+
+    <!-- ------------------------------------------------------------------------
+         1. HOME VIEW
+         ------------------------------------------------------------------------ -->
+    <section class="view-section active" id="homeView">
+      
+      <!-- Hero Spotlight Banner -->
+      <div class="hero-banner" id="heroBanner">
+        <div class="hero-backdrop-overlay"></div>
+        <div class="container">
+          <div class="hero-content">
+            <div class="hero-badges">
+              <span class="badge badge-gold" id="heroRatingBadge">★ 8.5 TMDB</span>
+              <span class="badge badge-muted" id="heroYearBadge">2024</span>
+              <span class="badge badge-red" id="heroGenreBadge">Sci-Fi</span>
+            </div>
+            <h1 class="hero-title" id="heroTitle">Dune: Part Two</h1>
+            <p class="hero-tagline" id="heroTagline">Long live the fighters.</p>
+            <p class="hero-overview" id="heroOverview">
+              Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" id="heroPlayTrailerBtn">
+                <span>▶</span>
+                <span>Watch Trailer</span>
+              </button>
+              <button class="btn btn-secondary" id="heroWatchlistBtn">
+                <span>+</span>
+                <span>Watchlist</span>
+              </button>
+              <button class="btn btn-glass" id="heroMoreInfoBtn">
+                <span>ℹ</span>
+                <span>Details</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Cycler Dots -->
+        <div class="hero-cycler-dots" id="heroCyclerDots"></div>
+      </div>
+
+      <!-- Movie Category Rows -->
+      <div class="container movie-sections-wrap">
+
+        <!-- Row 1: Trending Movies -->
+        <div class="movie-row-section">
+          <div class="movie-row-header">
+            <div class="movie-row-title-wrap">
+              <div class="row-accent-bar"></div>
+              <h2 class="movie-row-title">🔥 Trending Movies</h2>
+              <div class="row-toggle-pill">
+                <button class="btn row-toggle-btn active" data-window="week">This Week</button>
+                <button class="btn row-toggle-btn" data-window="day">Today</button>
+              </div>
+            </div>
+            <div class="movie-row-controls">
+              <button class="row-scroll-btn scroll-left" data-track="trendingTrack" aria-label="Scroll left">‹</button>
+              <button class="row-scroll-btn scroll-right" data-track="trendingTrack" aria-label="Scroll right">›</button>
+            </div>
+          </div>
+          <div class="movie-cards-track" id="trendingTrack"></div>
+        </div>
+
+        <!-- Row 2: Top Rated All-Time -->
+        <div class="movie-row-section">
+          <div class="movie-row-header">
+            <div class="movie-row-title-wrap">
+              <div class="row-accent-bar" style="background: var(--accent-gold);"></div>
+              <h2 class="movie-row-title">⭐ Top Rated Masterpieces</h2>
+            </div>
+            <div class="movie-row-controls">
+              <button class="row-scroll-btn scroll-left" data-track="topRatedTrack" aria-label="Scroll left">‹</button>
+              <button class="row-scroll-btn scroll-right" data-track="topRatedTrack" aria-label="Scroll right">›</button>
+            </div>
+          </div>
+          <div class="movie-cards-track" id="topRatedTrack"></div>
+        </div>
+
+        <!-- Row 3: Popular Worldwide -->
+        <div class="movie-row-section">
+          <div class="movie-row-header">
+            <div class="movie-row-title-wrap">
+              <div class="row-accent-bar"></div>
+              <h2 class="movie-row-title">🍿 Popular Worldwide</h2>
+            </div>
+            <div class="movie-row-controls">
+              <button class="row-scroll-btn scroll-left" data-track="popularTrack" aria-label="Scroll left">‹</button>
+              <button class="row-scroll-btn scroll-right" data-track="popularTrack" aria-label="Scroll right">›</button>
+            </div>
+          </div>
+          <div class="movie-cards-track" id="popularTrack"></div>
+        </div>
+
+        <!-- Row 4: Now Playing in Theaters -->
+        <div class="movie-row-section">
+          <div class="movie-row-header">
+            <div class="movie-row-title-wrap">
+              <div class="row-accent-bar" style="background: var(--accent-green);"></div>
+              <h2 class="movie-row-title">🎟️ In Theaters Now</h2>
+            </div>
+            <div class="movie-row-controls">
+              <button class="row-scroll-btn scroll-left" data-track="nowPlayingTrack" aria-label="Scroll left">‹</button>
+              <button class="row-scroll-btn scroll-right" data-track="nowPlayingTrack" aria-label="Scroll right">›</button>
+            </div>
+          </div>
+          <div class="movie-cards-track" id="nowPlayingTrack"></div>
+        </div>
+
+        <!-- Row 5: Upcoming Releases -->
+        <div class="movie-row-section">
+          <div class="movie-row-header">
+            <div class="movie-row-title-wrap">
+              <div class="row-accent-bar" style="background: var(--accent-blue);"></div>
+              <h2 class="movie-row-title">🚀 Anticipated Releases</h2>
+            </div>
+            <div class="movie-row-controls">
+              <button class="row-scroll-btn scroll-left" data-track="upcomingTrack" aria-label="Scroll left">‹</button>
+              <button class="row-scroll-btn scroll-right" data-track="upcomingTrack" aria-label="Scroll right">›</button>
+            </div>
+          </div>
+          <div class="movie-cards-track" id="upcomingTrack"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------------------
+         2. EXPLORE & SEARCH VIEW
+         ------------------------------------------------------------------------ -->
+    <section class="view-section" id="exploreView">
+      <div class="container explore-container">
+        
+        <div class="explore-header">
+          <h2 class="explore-title">Discover Cinematic Gems</h2>
+          <p class="explore-subtitle">Search the full catalogue, filter by genres, or sort by high-impact ratings.</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar-wrap">
+          <span class="search-bar-icon">🔍</span>
+          <input type="text" class="search-bar-input" id="exploreSearchInput" placeholder="Search by movie title, character, or director..." autocomplete="off" />
+          <button class="search-bar-clear" id="exploreSearchClear" style="display: none;">✕</button>
+        </div>
+
+        <!-- Genre Filter Chips -->
+        <div class="genre-filter-wrap" id="genreFilterTrack"></div>
+
+        <!-- Explore Toolbar -->
+        <div class="explore-toolbar">
+          <div class="results-count" id="exploreResultsCount">Showing 0 titles</div>
+          <div class="sort-select-wrap">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Sort by:</span>
+            <select class="sort-select" id="exploreSortSelect">
+              <option value="popularity.desc">Most Popular</option>
+              <option value="vote_average.desc">Highest Rated</option>
+              <option value="release_date.desc">Latest Release</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Movies Grid -->
+        <div class="movies-grid" id="exploreMoviesGrid"></div>
+
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------------------
+         3. MY VAULT (PERSONAL MOVIE DIARY) VIEW
+         ------------------------------------------------------------------------ -->
+    <section class="view-section" id="vaultView">
+      <div class="container vault-container">
+        
+        <div class="vault-header">
+          <div class="vault-title-wrap">
+            <div>
+              <h2 class="vault-title">My Personal Vault</h2>
+              <p class="text-secondary" style="font-size: 1.05rem; margin-top: 0.3rem;">
+                Your private cinema journal, watch history, and personal ratings.
+              </p>
+            </div>
+            <div class="vault-tools">
+              <button class="btn btn-secondary btn-sm" id="exportVaultBtn">
+                <span>⬇</span>
+                <span>Export Backup (JSON)</span>
+              </button>
+              <button class="btn btn-glass btn-sm" id="importVaultBtn">
+                <span>⬆</span>
+                <span>Restore Backup</span>
+              </button>
+              <input type="file" id="importVaultInput" accept=".json" style="display: none;" />
+            </div>
+          </div>
+
+          <!-- Stats Dashboard -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon-wrap stat-icon-red">🍿</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statWatchlistCount">0</span>
+                <span class="stat-label">In Watchlist</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon-wrap stat-icon-green">✓</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statWatchedCount">0</span>
+                <span class="stat-label">Movies Watched</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon-wrap stat-icon-gold">⭐</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statReviewsCount">0</span>
+                <span class="stat-label">Reviews Written</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon-wrap stat-icon-blue">📊</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statAvgRating">0.0 ★</span>
+                <span class="stat-label">Average User Rating</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vault Sub-Tabs -->
+          <div class="vault-tabs">
+            <button class="vault-tab-btn active" data-tab="watchlist">
+              <span>🍿</span>
+              <span>Watchlist</span>
+            </button>
+            <button class="vault-tab-btn" data-tab="watched">
+              <span>✅</span>
+              <span>Watched History</span>
+            </button>
+            <button class="vault-tab-btn" data-tab="reviews">
+              <span>⭐</span>
+              <span>Reviews & Diary</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Vault Content Area -->
+        <div id="vaultContentArea"></div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       Movie Details & Trailer Modal
+       ========================================================================== -->
+  <div class="modal-overlay" id="movieModal">
+    <div class="modal-container">
+      <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close modal">✕</button>
+
+      <!-- Video Container for embedded YouTube Trailer -->
+      <div class="modal-video-container" id="modalVideoContainer">
+        <iframe id="modalVideoIframe" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      </div>
+
+      <!-- Modal Hero Backdrop (visible when trailer is not playing) -->
+      <div class="modal-hero" id="modalHero">
+        <div class="modal-hero-overlay"></div>
+        <div class="modal-trailer-btn-wrap">
+          <button class="modal-play-trailer-btn" id="modalPlayTrailerBtn">
+            <span>▶</span>
+            <span>Watch Official Trailer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body Details -->
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <!-- Poster -->
+          <div class="modal-poster-wrap">
+            <img id="modalPosterImg" src="" alt="Movie Poster" />
+          </div>
+
+          <!-- Details -->
+          <div class="modal-details">
+            <h2 class="modal-title" id="modalTitle">Title</h2>
+            <div class="modal-tagline" id="modalTagline">Tagline</div>
+            <div class="modal-meta-row">
+              <span class="badge badge-gold" id="modalRating">★ 8.5 / 10</span>
+              <span class="badge badge-muted" id="modalYear">2024</span>
+              <span class="badge badge-muted" id="modalRuntime">2h 46m</span>
+            </div>
+            <div class="modal-genres" id="modalGenres"></div>
+            <p class="modal-overview" id="modalOverview">Overview description...</p>
+            
+            <div class="modal-vault-actions">
+              <button class="btn btn-primary" id="modalWatchlistBtn">+ Watchlist</button>
+              <button class="btn btn-glass" id="modalWatchedBtn">Mark Watched</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Cast Row -->
+        <div class="modal-cast-section">
+          <h3 class="modal-section-title">Top Billed Cast</h3>
+          <div class="modal-cast-track" id="modalCastTrack"></div>
+        </div>
+
+        <!-- Personal Rating & Review Section (Diary) -->
+        <div class="modal-review-section">
+          <h3 class="modal-section-title" style="margin-bottom: 0.5rem;">My Cinema Diary</h3>
+          <p class="text-secondary" style="font-size: 0.88rem; margin-bottom: 1rem;">
+            Rate this film and log your personal notes in your local vault:
+          </p>
+          <div class="interactive-stars-wrap">
+            <button class="star-btn" data-val="1">★</button>
+            <button class="star-btn" data-val="2">★</button>
+            <button class="star-btn" data-val="3">★</button>
+            <button class="star-btn" data-val="4">★</button>
+            <button class="star-btn" data-val="5">★</button>
+            <span class="rating-text-label" id="modalRatingLabel">Tap to rate</span>
+          </div>
+          <textarea class="review-textarea" id="modalReviewNotes" placeholder="Write your personal thoughts, favorite scenes, or review notes..."></textarea>
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn btn-primary btn-sm" id="modalSaveReviewBtn">Save to Diary</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Toast Notifications Container
+       ========================================================================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ==========================================================================
+       Footer
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="nav-brand">
+          <div class="nav-brand-icon" style="width: 24px; height: 24px; font-size: 0.75rem;">▶</div>
+          <span class="nav-brand-text" style="font-size: 1.2rem;">CINEVAULT</span>
+        </div>
+        <p class="footer-copy">Your personal cinema diary & movie tracker.</p>
+      </div>
+      <p class="footer-tmdb-note">
+        Powered by TMDB API. This product uses the TMDB API but is not endorsed or certified by TMDB.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       JavaScript Scripts (Pure Static, No Bundler Needed)
+       ========================================================================== -->
+  <script src="js/config.js"></script>
+  <script src="js/fallbackData.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/vault.js"></script>
+  <script src="js/app.js"></script>
+</body>
 </html>
